@@ -1,8 +1,15 @@
 if (false) {
 	resetSpawns();
 } else {
-	processAllSpawns();
-	processAllCreeps();
+	var spawn = Game.spawns.Spawn1;
+	var bd = makeBuildQueue(spawn, false);
+	for (var i in bd) {
+		var d = bd[i];
+		console.log("queue #"+i+": ("+d.x+","+d.y+"), " + d.type + ", " + d.priority);
+	}
+	//processAllSpawns();
+	//processAllCreeps();
+	
 }
 
 function processAllSpawns() {
@@ -410,17 +417,19 @@ function makeBuildQueue(spawn, structureFlag) {
 			ignoreCreeps : true,
 			ignoreDestructibleStructures : structureFlag
 		});
-	    for (var j in path) {
-	    	var prio = j;
-	    	if (!posIsSwamp(spawn.room, path[j].x, path[j].y)) {
-				prio += 7;
-			}
-			buildList.push({
-				x : path[j].x,
-				y : path[j].y,
-				type : "road",
-				priority : prio});
-	    }
+	    path.forEach(function(a) {
+	    	var prio = path.indexOf(a);
+	    	if ((prio != 0) && (prio != (path.length-1))) {
+    		    if (!posIsSwamp(spawn.room, a.x, a.y)) { 
+    		    	prio = prio + 7;
+				}
+				buildList.push({
+					x : a.x,
+					y : a.y,
+					type : "road",
+					priority : prio});
+	    	}
+	    });
 	}
 	buildList.sort(function(a, b) {
 		return (a.priority - b.priority);
@@ -430,12 +439,9 @@ function makeBuildQueue(spawn, structureFlag) {
 
 function posIsSwamp(room, x, y) {
 	var look = room.lookAt(x, y);
-	look.forEach(function(a) {
-		if (a.terrain == 'swamp') {
-			return true;
-		}
+	return look.some(function(a) {
+		return (a.terrain == 'swamp');
 	});
-	return false;
 }
 
 function setVar(creep, entry, value) {
@@ -471,9 +477,14 @@ function pad(num, size) {
 }
 
 function resetSpawns() {
-	var targets = Game.spawns.Spawn1.room.find(Game.MY_CREEPS);
-	for ( var m in targets) {
-		targets[m].suicide();
+	console.log("resetSpawns");
+	if (Game.spawns.length > 0) {
+		var targets = Game.spawns.Spawn1.room.find(Game.MY_CREEPS);
+		for ( var m in targets) {
+			targets[m].suicide();
+		}
+		setVar(Game.spawns.Spawn1, "isInitialized", false);
+	} else {
+		console.log("No active spawn detected!");
 	}
-	setVar(Game.spawns.Spawn1, "isInitialized", false);
 }
