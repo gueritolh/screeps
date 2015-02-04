@@ -1,3 +1,5 @@
+// V Feb-1
+// gueritolh 2015
 if (false) {
 	resetSpawns();
 } else {
